@@ -1,0 +1,108 @@
+
+use corp
+
+
+db.info.createIndex(
+    {motto: 1 },
+    {
+        name: "motto_idx",
+        unique: true
+    }
+)
+
+
+db.info.deleteMany({})
+db.role.deleteMany({})
+db.employee.deleteMany({})
+
+//db.createCollection("info")
+//db.createCollection("role")
+//db.createCollection("employee")
+
+db.employee.insertMany([
+{
+//    "_id" : ObjectId("610aaf665425a55feff98e61"),
+    origin: "",
+    "email" : "aeri@party.com",
+    "userId" : "AE",
+    "userName" : "wingy"
+},{
+//    "_id" : ObjectId("610aaf665425a55feff98e62"),
+    "email" : "jaheira@party.com",
+    "userId" : "JH",
+    "userName" : "jay"
+},
+{
+    "email": "minscandboo@party.com",
+    "origin": "Rashemen",
+    userId: "MB",
+    userName: "ToughGuy"
+}
+])
+
+db.info.insertMany([
+
+{
+    "userId" : "MB",
+    "motto" : "Go for the eyes, Boo. GO FOR THE EYES!"
+}, {
+    userId: "AE",
+    notes: "lost her wings"
+}])
+
+db.role.insertMany([
+{
+    "userId" : "JH",
+    "role" : "healer/off-tank"
+},
+{
+    "userId" : "AE",
+    "role" : "healer/damage-dealer"
+}]
+)
+
+db.employee.find({
+    userId: "AE"
+//    "email": /admin/i
+})
+
+db.employee.aggregate([
+    {
+        $lookup:{
+            from: "info",       // other table name
+            localField: "userId",   // name of users table field
+            foreignField: "userId", // name of userinfo table field
+            as: "info"         // alias for userinfo table
+        }
+    },
+    {
+        $lookup:{
+            from: "role",
+            localField: "userId",
+            foreignField: "userId",
+            as: "role"
+        }
+    },
+    {
+        $match: {
+            $and: [
+                {"_id": {$gte: ObjectId("610ba8812e5b7b388aefa75e")}},
+                {email: /.*party.com/}
+            ]
+        }
+    },
+    {
+        $project:{
+            _id : 1,
+            email : 1,
+            userName : 1,
+            origin: 1,
+            info: {
+                motto: "$info.motto",
+                notes: "$info.notes"
+            },
+            role : "$role.role"
+        }
+    }
+]);
+
